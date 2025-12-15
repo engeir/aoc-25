@@ -9,16 +9,6 @@ import (
 )
 
 func main() {
-	// Test with test input first
-	testLines, err := utils.ReadLines("test_input1.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("=== Test Input ===")
-	fmt.Println("Part 1:", solvePart1(testLines))
-	fmt.Println("Part 2:", solvePart2(testLines))
-
-	// Now with full input
 	lines, err := utils.ReadLines("input1.txt")
 	if err != nil {
 		log.Fatal(err)
