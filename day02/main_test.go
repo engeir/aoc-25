@@ -19,5 +19,13 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	// want := 0
+	lines, err := utils.ReadInput("./test_input.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := solvePart2(lines)
+	want := 4174379265
+	if got != want {
+		t.Errorf("We got %d, wanted %d", got, want)
+	}
 }
