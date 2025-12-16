@@ -14,7 +14,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// lines_no_newline := strings.TrimSuffix(lines, "\n")
 	fmt.Println("=== Full Input ===")
 	fmt.Println("Part 1:", solvePart1(lines))
 	fmt.Println("Part 2:", solvePart2(lines))
