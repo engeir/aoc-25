@@ -29,10 +29,14 @@ func createNDigitNumber(numb string, size int) int {
 	length := len(numb)
 	large := ""
 	idx := 0
+	window := length - size + 1
 	for i := 0; i < size; i++ {
+		idx_tmp := 0
 		large_i := 0
-		idx, large_i = findLargestInt(numb[idx : length-size+i+1])
-		idx++
+		numb_part := numb[idx:idx+window]
+		idx_tmp, large_i = findLargestInt(numb_part)
+		idx += 1 + idx_tmp
+		window -= idx_tmp
 		large_s := strconv.Itoa(large_i)
 		large_tmp := []string{large, large_s}
 		large = strings.Join(large_tmp, "")
@@ -52,7 +56,11 @@ func solvePart1(lines []string) int {
 	return count
 }
 func solvePart2(lines []string) int {
-	return 0
+	count := 0
+	for _, v := range lines {
+		count += createNDigitNumber(v, 12)
+	}
+	return count
 }
 func main() {
 	lines, err := utils.ReadLines("./input.txt")
