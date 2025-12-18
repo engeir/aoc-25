@@ -156,7 +156,7 @@ func removeRolls(lines []string) ([]string, int) {
 		for j := 0; j < width; j++ {
 			if lines[i][j] == '@' {
 				if findGridFamily(i, j, height, width, lines) {
-					s := []rune(result[i])
+					s := []byte(result[i])
 					s[j] = '.'
 					result[i] = string(s)
 					count++
