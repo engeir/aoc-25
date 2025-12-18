@@ -7,7 +7,7 @@ import (
 	"github.com/engeir/aoc-25/utils"
 )
 
-const neighborsRoof = 4
+const neighboursRoof = 4
 
 var (
 	down      = [2]int{1, 0}
@@ -20,7 +20,7 @@ var (
 	upRight   = [2]int{-1, 1}
 )
 
-var neighborOffset = map[string][][2]int{
+var neighbourOffset = map[string][][2]int{
 	"top-right": {
 		down,
 		downLeft,
@@ -81,7 +81,7 @@ var neighborOffset = map[string][][2]int{
 	},
 }
 
-func checkNeighbors(i, j int, lines []string, offsets [][2]int) bool {
+func checkNeighbours(i, j int, lines []string, offsets [][2]int) bool {
 	count := 0
 	for _, offset := range offsets {
 		row := i + offset[0]
@@ -90,7 +90,7 @@ func checkNeighbors(i, j int, lines []string, offsets [][2]int) bool {
 			count++
 		}
 	}
-	return count < neighborsRoof
+	return count < neighboursRoof
 }
 
 func getPosition(i, j, h, w int) string {
@@ -125,8 +125,8 @@ func getPosition(i, j, h, w int) string {
 }
 
 func findGridFamily(i, j, h, w int, lines []string) bool {
-	offset := neighborOffset[getPosition(i, j, h, w)]
-	return checkNeighbors(i, j, lines, offset)
+	offset := neighbourOffset[getPosition(i, j, h, w)]
+	return checkNeighbours(i, j, lines, offset)
 }
 
 func solvePart1(lines []string) int {
