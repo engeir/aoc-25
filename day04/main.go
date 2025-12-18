@@ -145,8 +145,39 @@ func solvePart1(lines []string) int {
 	return count
 }
 
+func removeRolls(lines []string) ([]string, int) {
+	// Get the number of lines (height) and row length (width)
+	height := len(lines)
+	width := len(lines[0])
+	count := 0
+	lines_ := make([]string, len(lines))
+	copy(lines_, lines)
+	for i := 0; i < height; i++ {
+		for j := 0; j < width; j++ {
+			if string(lines[i][j]) == "@" {
+				if findGridFamily(i, j, height, width, lines) {
+					s := []rune(lines_[i])
+					s[j] = '.'
+					lines_[i] = string(s)
+					count++
+				}
+			}
+		}
+	}
+	return lines_, count
+}
+
 func solvePart2(lines []string) int {
-	return 0
+	removableRolls := 0
+	count := 0
+	for {
+		lines, removableRolls = removeRolls(lines)
+		count += removableRolls
+		if removableRolls == 0 {
+			break
+		}
+	}
+	return count
 }
 
 func main() {
@@ -157,5 +188,5 @@ func main() {
 	fmt.Println("=== Part 1: ===")
 	fmt.Println(solvePart1(lines))
 	fmt.Println("=== Part 2: ===")
-	solvePart2(lines)
+	fmt.Println(solvePart2(lines))
 }

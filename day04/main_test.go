@@ -18,22 +18,14 @@ func TestPart1(t *testing.T) {
 	}
 }
 
-func Test_solvePart1(t *testing.T) {
-	type args struct {
-		lines []string
+func TestPart2(t *testing.T) {
+	lines, err := utils.ReadLines("./test_input.txt")
+	if err != nil {
+		t.Fatal(err)
 	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := solvePart1(tt.args.lines); got != tt.want {
-				t.Errorf("solvePart1() = %v, want %v", got, tt.want)
-			}
-		})
+	got := solvePart2(lines)
+	want := 43
+	if got != want {
+		t.Fatalf("Got %d, but wanted %d", got, want)
 	}
 }
