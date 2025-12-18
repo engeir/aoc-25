@@ -8,82 +8,82 @@ import (
 	"github.com/engeir/aoc-25/utils"
 )
 
+const neighborsRoof = 4
+
 func checkTopRight(i, j int, lines []string) bool {
-	fmt.Println("Here we are")
-	nearby_tmp := []string{string(lines[i][j-1]), string(lines[i+1][j-1]), string(lines[i+1][j])}
-	nearby := strings.Join(nearby_tmp, "")
-	fmt.Println(strings.Count(nearby, "@"))
-	return true
+	nearbyTmp := []string{string(lines[i][j-1]), string(lines[i+1][j-1]), string(lines[i+1][j])}
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkTopLeft(i, j int, lines []string) bool {
-	nearby_tmp := []string{string(lines[i][j+1]), string(lines[i+1][j+1]), string(lines[i+1][j])}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearbyTmp := []string{string(lines[i][j+1]), string(lines[i+1][j+1]), string(lines[i+1][j])}
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkBottomRight(i, j int, lines []string) bool {
-	nearby_tmp := []string{string(lines[i-1][j]), string(lines[i-1][j-1]), string(lines[i][j-1])}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearbyTmp := []string{string(lines[i-1][j]), string(lines[i-1][j-1]), string(lines[i][j-1])}
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkBottomLeft(i, j int, lines []string) bool {
-	nearby_tmp := []string{string(lines[i-1][j]), string(lines[i-1][j+1]), string(lines[i][j+1])}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearbyTmp := []string{string(lines[i-1][j]), string(lines[i-1][j+1]), string(lines[i][j+1])}
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkTop(i, j int, lines []string) bool {
-	nearby_tmp := []string{
+	nearbyTmp := []string{
 		string(lines[i][j-1]),
 		string(lines[i+1][j-1]),
 		string(lines[i+1][j]),
 		string(lines[i+1][j+1]),
 		string(lines[i][j+1]),
 	}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkRight(i, j int, lines []string) bool {
-	nearby_tmp := []string{
+	nearbyTmp := []string{
 		string(lines[i-1][j]),
 		string(lines[i-1][j-1]),
 		string(lines[i][j-1]),
 		string(lines[i+1][j-1]),
 		string(lines[i+1][j]),
 	}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkBottom(i, j int, lines []string) bool {
-	nearby_tmp := []string{
+	nearbyTmp := []string{
 		string(lines[i][j-1]),
 		string(lines[i-1][j-1]),
 		string(lines[i-1][j]),
 		string(lines[i-1][j+1]),
 		string(lines[i][j+1]),
 	}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkLeft(i, j int, lines []string) bool {
-	nearby_tmp := []string{
+	nearbyTmp := []string{
 		string(lines[i-1][j]),
 		string(lines[i-1][j+1]),
 		string(lines[i][j+1]),
 		string(lines[i+1][j+1]),
 		string(lines[i+1][j]),
 	}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func checkMiddle(i, j int, lines []string) bool {
-	nearby_tmp := []string{
+	nearbyTmp := []string{
 		string(lines[i+1][j+1]),
 		string(lines[i+1][j-1]),
 		string(lines[i+1][j]),
@@ -93,8 +93,8 @@ func checkMiddle(i, j int, lines []string) bool {
 		string(lines[i][j+1]),
 		string(lines[i][j-1]),
 	}
-	nearby := strings.Join(nearby_tmp, "")
-	return strings.Count(nearby, "@") < 4
+	nearby := strings.Join(nearbyTmp, "")
+	return strings.Count(nearby, "@") < neighborsRoof
 }
 
 func findGridFamily(i, j, h, w int, lines []string) bool {
@@ -135,7 +135,7 @@ func solvePart1(lines []string) int {
 	count := 0
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
-			if string(lines[i][j]) == "@" {
+			if lines[i][j] == '@' {
 				if findGridFamily(i, j, height, width, lines) {
 					count++
 				}
@@ -150,21 +150,21 @@ func removeRolls(lines []string) ([]string, int) {
 	height := len(lines)
 	width := len(lines[0])
 	count := 0
-	lines_ := make([]string, len(lines))
-	copy(lines_, lines)
+	result := make([]string, len(lines))
+	copy(result, lines)
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
-			if string(lines[i][j]) == "@" {
+			if lines[i][j] == '@' {
 				if findGridFamily(i, j, height, width, lines) {
-					s := []rune(lines_[i])
+					s := []rune(result[i])
 					s[j] = '.'
-					lines_[i] = string(s)
+					result[i] = string(s)
 					count++
 				}
 			}
 		}
 	}
-	return lines_, count
+	return result, count
 }
 
 func solvePart2(lines []string) int {
