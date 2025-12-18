@@ -3,129 +3,130 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/engeir/aoc-25/utils"
 )
 
 const neighborsRoof = 4
 
-func checkTopRight(i, j int, lines []string) bool {
-	nearbyTmp := []string{string(lines[i][j-1]), string(lines[i+1][j-1]), string(lines[i+1][j])}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
+var (
+	down      = [2]int{1, 0}
+	downLeft  = [2]int{1, -1}
+	downRight = [2]int{1, 1}
+	left      = [2]int{0, -1}
+	right     = [2]int{0, 1}
+	up        = [2]int{-1, 0}
+	upLeft    = [2]int{-1, -1}
+	upRight   = [2]int{-1, 1}
+)
+
+var neighborOffset = map[string][][2]int{
+	"top-right": {
+		down,
+		downLeft,
+		left,
+	},
+	"top-left": {
+		down,
+		downRight,
+		right,
+	},
+	"bottom-right": {
+		left,
+		up,
+		upLeft,
+	},
+	"bottom-left": {
+		right,
+		up,
+		upRight,
+	},
+	"top": {
+		down,
+		downLeft,
+		downRight,
+		left,
+		right,
+	},
+	"right": {
+		down,
+		downLeft,
+		left,
+		up,
+		upLeft,
+	},
+	"bottom": {
+		left,
+		right,
+		up,
+		upLeft,
+		upRight,
+	},
+	"left": {
+		down,
+		downRight,
+		right,
+		up,
+		upRight,
+	},
+	"middle": {
+		down,
+		downLeft,
+		downRight,
+		left,
+		right,
+		up,
+		upLeft,
+		upRight,
+	},
 }
 
-func checkTopLeft(i, j int, lines []string) bool {
-	nearbyTmp := []string{string(lines[i][j+1]), string(lines[i+1][j+1]), string(lines[i+1][j])}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func checkBottomRight(i, j int, lines []string) bool {
-	nearbyTmp := []string{string(lines[i-1][j]), string(lines[i-1][j-1]), string(lines[i][j-1])}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func checkBottomLeft(i, j int, lines []string) bool {
-	nearbyTmp := []string{string(lines[i-1][j]), string(lines[i-1][j+1]), string(lines[i][j+1])}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func checkTop(i, j int, lines []string) bool {
-	nearbyTmp := []string{
-		string(lines[i][j-1]),
-		string(lines[i+1][j-1]),
-		string(lines[i+1][j]),
-		string(lines[i+1][j+1]),
-		string(lines[i][j+1]),
+func checkNeighbors(i, j int, lines []string, offsets [][2]int) bool {
+	count := 0
+	for _, offset := range offsets {
+		row := i + offset[0]
+		col := j + offset[1]
+		if lines[row][col] == '@' {
+			count++
+		}
 	}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
+	return count < neighborsRoof
 }
 
-func checkRight(i, j int, lines []string) bool {
-	nearbyTmp := []string{
-		string(lines[i-1][j]),
-		string(lines[i-1][j-1]),
-		string(lines[i][j-1]),
-		string(lines[i+1][j-1]),
-		string(lines[i+1][j]),
-	}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func checkBottom(i, j int, lines []string) bool {
-	nearbyTmp := []string{
-		string(lines[i][j-1]),
-		string(lines[i-1][j-1]),
-		string(lines[i-1][j]),
-		string(lines[i-1][j+1]),
-		string(lines[i][j+1]),
-	}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func checkLeft(i, j int, lines []string) bool {
-	nearbyTmp := []string{
-		string(lines[i-1][j]),
-		string(lines[i-1][j+1]),
-		string(lines[i][j+1]),
-		string(lines[i+1][j+1]),
-		string(lines[i+1][j]),
-	}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func checkMiddle(i, j int, lines []string) bool {
-	nearbyTmp := []string{
-		string(lines[i+1][j+1]),
-		string(lines[i+1][j-1]),
-		string(lines[i+1][j]),
-		string(lines[i-1][j+1]),
-		string(lines[i-1][j-1]),
-		string(lines[i-1][j]),
-		string(lines[i][j+1]),
-		string(lines[i][j-1]),
-	}
-	nearby := strings.Join(nearbyTmp, "")
-	return strings.Count(nearby, "@") < neighborsRoof
-}
-
-func findGridFamily(i, j, h, w int, lines []string) bool {
+func getPosition(i, j, h, w int) string {
 	switch {
 	// Top right corner
 	case i == 0 && j == w-1:
-		return checkTopRight(i, j, lines)
+		return "top-right"
 	// Top left corner
 	case i == 0 && j == 0:
-		return checkTopLeft(i, j, lines)
+		return "top-left"
 	// Bottom right corner
 	case i == h-1 && j == w-1:
-		return checkBottomRight(i, j, lines)
+		return "bottom-right"
 	// Bottom left corner
 	case i == h-1 && j == 0:
-		return checkBottomLeft(i, j, lines)
+		return "bottom-left"
 	// Top
 	case i == 0:
-		return checkTop(i, j, lines)
+		return "top"
 	// Right
 	case j == w-1:
-		return checkRight(i, j, lines)
+		return "right"
 	// Bottom
 	case i == h-1:
-		return checkBottom(i, j, lines)
+		return "bottom"
 	// Left
 	case j == 0:
-		return checkLeft(i, j, lines)
+		return "left"
 	default:
-		return checkMiddle(i, j, lines)
+		return "middle"
 	}
+}
+
+func findGridFamily(i, j, h, w int, lines []string) bool {
+	offset := neighborOffset[getPosition(i, j, h, w)]
+	return checkNeighbors(i, j, lines, offset)
 }
 
 func solvePart1(lines []string) int {
