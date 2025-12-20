@@ -64,7 +64,7 @@ func concatenateRanges(ranges map[int][2]int) (map[int][2]int, int) {
 				continue
 			}
 			switch {
-			case startStop[0] <= v[0] && startStop[1] > v[0] && startStop[1] < v[1]:
+			case startStop[0] <= v[0] && startStop[1] >= v[0] && startStop[1] < v[1]:
 				tmp := [2]int(ranges[k])
 				tmp[0] = startStop[0]
 				ranges[k] = tmp
@@ -77,7 +77,7 @@ func concatenateRanges(ranges map[int][2]int) (map[int][2]int, int) {
 				ranges[k] = tmp
 				delete(ranges, j)
 				count++
-			case startStop[0] > v[0] && startStop[1] >= v[1] && startStop[0] < v[1]:
+			case startStop[0] >= v[0] && startStop[1] >= v[1] && startStop[0] <= v[1]:
 				tmp := [2]int(ranges[k])
 				tmp[1] = startStop[1]
 				ranges[k] = tmp
@@ -112,7 +112,7 @@ func solvePart1(lines []string) int {
 	m, lineNumber := createFreshRanges(lines)
 	c := 0
 	for {
-		m, c = concatenateRanges(m) 
+		m, c = concatenateRanges(m)
 		if c == 0 {
 			break
 		}
@@ -121,7 +121,21 @@ func solvePart1(lines []string) int {
 }
 
 func solvePart2(lines []string) int {
-	return 0
+	m, _ := createFreshRanges(lines)
+	c := 0
+	for {
+		m, c = concatenateRanges(m)
+		if c == 0 {
+			break
+		}
+	}
+	count := 0
+	fmt.Println(m)
+	for _, v := range m {
+		result := v[1] - v[0] + 1
+		count += result
+	}
+	return count
 }
 
 func main() {
