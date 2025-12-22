@@ -25,7 +25,7 @@ func TestSolvePart2(t *testing.T) {
 	}
 
 	got := solvePart2(lines)
-	want := 0
+	want := 3263827
 	if got != want {
 		t.Errorf("Wanted %d, got %d", want, got)
 	}

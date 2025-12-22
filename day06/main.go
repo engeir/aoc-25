@@ -58,8 +58,76 @@ func solvePart1(lines []string) int {
 	return evaluateMatrix(parts, operations)
 }
 
+func getGridSize(lines []string) (int, int) {
+
+	height := len(lines)
+	length := 0
+	for _, l := range lines {
+		if len(l) > length {
+			length = len(l)
+		}
+	}
+	return height, length
+}
+
+func findNumbers(lines []string, calc []int, idx int) []int {
+	numb := ""
+	for _, line := range lines {
+		if idx < len(line) {
+			numb += string(line[idx])
+		}
+	}
+	numb = strings.TrimSpace(numb)
+	if numb != "" {
+		calcTmp, err := strconv.Atoi(strings.TrimSpace(numb))
+		if err != nil {
+			log.Fatal(err)
+		}
+		calc = append(calc, calcTmp)
+	}
+	return calc
+}
+
+func findOperator(lines string, idx int) string {
+	op := ""
+	if idx >= len(lines) {
+		op = " "
+	} else {
+		op = string(lines[idx])
+	}
+	return strings.TrimSpace(op)
+}
+
+func evaluateTask(calc []int, operation string) int {
+	subCount := 0
+	for _, calc := range calc {
+		if subCount == 0 {
+			subCount = calc
+			continue
+		}
+		switch operation {
+		case "*":
+			subCount *= calc
+		case "+":
+			subCount += calc
+		}
+	}
+	return subCount
+}
+
 func solvePart2(lines []string) int {
-	return 0
+	height, length := getGridSize(lines)
+	count := 0
+	calc := make([]int, 0)
+	for i := length; i >= 0; i-- {
+		calc = findNumbers(lines[:height-1], calc, i)
+		op := findOperator(lines[height-1], i)
+		if op != "" {
+			count += evaluateTask(calc, op)
+			calc = make([]int, 0)
+		}
+	}
+	return count
 }
 
 func main() {
