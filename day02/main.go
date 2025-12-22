@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("=== Full Input ===")
+	fmt.Println("=== Day 2 ===")
 	fmt.Println("Part 1:", solvePart1(lines))
 	fmt.Println("Part 2:", solvePart2(lines))
 }

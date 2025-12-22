@@ -2,12 +2,35 @@ package utils
 
 import (
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 )
 
+func findInputFile(path string) (string, error) {
+	if _, err := os.Stat(path); err == nil {
+		return path, err
+	}
+
+	for skip := 1; skip < 5; skip++ {
+		_, callerFile, _, ok := runtime.Caller(skip)
+		if ok {
+			callerDir := filepath.Dir(callerFile)
+			dayDir := filepath.Base(callerDir)
+
+			altPath := filepath.Join(dayDir, path)
+			if _, err := os.Stat(altPath); err == nil {
+				return altPath, nil
+			}
+		}
+	}
+	return path, nil
+}
+
 // ReadInput reads the entire input file as a string
 func ReadInput(filepath string) (string, error) {
-	data, err := os.ReadFile(filepath)
+	resolvedPath, _ := findInputFile(filepath)
+	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
 		return "", err
 	}

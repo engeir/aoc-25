@@ -130,7 +130,6 @@ func solvePart2(lines []string) int {
 		}
 	}
 	count := 0
-	fmt.Println(m)
 	for _, v := range m {
 		result := v[1] - v[0] + 1
 		count += result
@@ -144,8 +143,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("=== Part 1 ===")
-	fmt.Println(solvePart1(lines))
-	fmt.Println("=== Part 2 ===")
-	fmt.Println(solvePart2(lines))
+	fmt.Println("=== Day 5 ===")
+	fmt.Println("Part 1:", solvePart1(lines))
+	fmt.Println("Part 2:", solvePart2(lines))
 }
