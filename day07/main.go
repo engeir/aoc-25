@@ -50,8 +50,46 @@ func solvePart1(lines []string) int {
 	return count
 }
 
+func updateWorldCount(current []int, lineLength, i int) []int {
+	switch i {
+	case 0:
+		current[i+1] += current[i]
+		current[i] = 0
+	case lineLength - 1:
+		current[i-1] += current[i]
+		current[i] = 0
+	default:
+		current[i+1] += current[i]
+		current[i-1] += current[i]
+		current[i] = 0
+	}
+	return current
+}
+
 func solvePart2(lines []string) int {
-	return 0
+	// Keep info about two lines. The current and the next.
+	lineLength := len(lines[0])
+	current := make([]int, lineLength)
+	current[strings.Index(lines[0], "S")] = 1
+	for _, line := range lines[1:] {
+		nextIdx := findSplitters(line)
+		next := make([]int, lineLength)
+		if len(nextIdx) != 0 {
+			for _, splitter := range nextIdx {
+				next[splitter[0]] = 1
+			}
+			for i := range lineLength {
+				if current[i] > 0 && next[i] == 1 {
+					current = updateWorldCount(current, lineLength, i)
+				}
+			}
+		}
+	}
+	count := 0
+	for _, v := range current {
+		count += v
+	}
+	return count
 }
 
 func main() {
