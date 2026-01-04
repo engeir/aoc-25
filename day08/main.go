@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"log"
-	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -33,11 +32,11 @@ func parseCoord(pos string) (Coord, error) {
 	return Coord{posX, posY, posZ}, nil
 }
 
-func calcDistance(pos1, pos2 Coord) float64 {
-	posX := pos2.X - pos1.X
-	posY := pos2.Y - pos1.Y
-	posZ := pos2.Z - pos1.Z
-	return math.Sqrt(math.Pow(float64(posX), 2) + math.Pow(float64(posY), 2) + math.Pow(float64(posZ), 2))
+func calcSquaredDistance(pos1, pos2 Coord) int {
+	posX := int(pos2.X - pos1.X)
+	posY := int(pos2.Y - pos1.Y)
+	posZ := int(pos2.Z - pos1.Z)
+	return posX*posX + posY*posY + posZ*posZ
 }
 
 func RemoveIndex(s [][]Coord, index int) [][]Coord {
@@ -46,64 +45,68 @@ func RemoveIndex(s [][]Coord, index int) [][]Coord {
 
 type BoolFloatTuple struct {
 	LocalOther bool
-	Distance   float64
+	Distance   int
 }
 
-func uniqueSlice(slice []BoolFloatTuple) []BoolFloatTuple {
-	uniqueMap := make(map[BoolFloatTuple]bool)
-	result := []BoolFloatTuple{}
-
-	for _, v := range slice {
-		if !uniqueMap[v] {
-			uniqueMap[v] = true
-			result = append(result, v)
-		}
-	}
-
-	return result
+type UnionFind struct {
+	parent map[Coord]Coord
+	rank   map[Coord]int
 }
 
-func connectClosestCircuits(allCircs [][]Coord, nth int) [][]Coord {
-	shortestDistance := math.MaxFloat64
-	localDistance := math.MaxFloat64
-	var (
-		distanceList        []BoolFloatTuple
-		shortestDistanceIdx [2]int
-	)
-	for focusedIdx, focusedCircuit := range allCircs {
-		for _, focusedPos := range focusedCircuit {
-			for _, searchPos := range focusedCircuit {
-				dist := calcDistance(focusedPos, searchPos)
-				if dist != 0 {
-					distanceList = append(distanceList, BoolFloatTuple{true, dist})
-				}
-				if dist < localDistance && dist != 0 {
-					localDistance = dist
-				}
-			}
-			for searchIdx, searchCircuit := range allCircs[focusedIdx+1:] {
-				for _, searchPos := range searchCircuit {
-					dist := calcDistance(focusedPos, searchPos)
-					distanceList = append(distanceList, BoolFloatTuple{false, dist})
-					if dist < shortestDistance {
-						shortestDistance = dist
-						shortestDistanceIdx = [2]int{focusedIdx, searchIdx + focusedIdx + 1}
-					}
-				}
-			}
-		}
+// Initialize - each coordinate is its own circuit
+func NewUnionFind(coords []Coord) *UnionFind {
+	uf := &UnionFind{
+		parent: make(map[Coord]Coord),
+		rank:   make(map[Coord]int),
 	}
-	slices.SortStableFunc(distanceList, func(a, b BoolFloatTuple) int { return cmp.Compare(a.Distance, b.Distance) })
-	distanceList = uniqueSlice(distanceList)
-	if !distanceList[nth].LocalOther {
-		newCirc := append(allCircs[shortestDistanceIdx[0]], allCircs[shortestDistanceIdx[1]]...)
-		allCircs[shortestDistanceIdx[0]] = newCirc
-		allCircs = RemoveIndex(allCircs, shortestDistanceIdx[1])
+	for _, c := range coords {
+		uf.parent[c] = c // each coordinate is its own parent initially
+		uf.rank[c] = 0
 	}
-	return allCircs
+	return uf
 }
 
-func solvePart1(lines []string) int {
+// Find the root (representative) of this coordinate's circuit
+func (uf *UnionFind) Find(c Coord) Coord {
+	if uf.parent[c] != c {
+		uf.parent[c] = uf.Find(uf.parent[c]) // path compression
+	}
+	return uf.parent[c]
+}
+
+// Are these two coordinates in the same circuit?
+func (uf *UnionFind) Same(c1, c2 Coord) bool {
+	return uf.Find(c1) == uf.Find(c2)
+}
+
+// Merge the circuits containing these coordinates
+func (uf *UnionFind) Union(c1, c2 Coord) {
+	root1 := uf.Find(c1)
+	root2 := uf.Find(c2)
+
+	if root1 == root2 {
+		return // already in same circuit
+	}
+
+	// Union by rank
+	if uf.rank[root1] < uf.rank[root2] {
+		uf.parent[root1] = root2
+	} else if uf.rank[root1] > uf.rank[root2] {
+		uf.parent[root2] = root1
+	} else {
+		uf.parent[root2] = root1
+		uf.rank[root1]++
+	}
+}
+
+type DistPair struct {
+	distance int
+	coord1   Coord
+	coord2   Coord
+}
+
+func solvePart1(lines []string, maxConnections int) int {
+	// Parse coordinates
 	var coords []Coord
 	for _, line := range lines {
 		parsed, err := parseCoord(line)
@@ -112,27 +115,103 @@ func solvePart1(lines []string) int {
 		}
 		coords = append(coords, parsed)
 	}
-	var circuits [][]Coord
-	for _, coord := range coords {
-		circuits = append(circuits, []Coord{coord})
+
+	// STEP 1: Compute all pairwise distances ONCE
+	var allPairs []DistPair
+	for i := range coords {
+		for j := i + 1; j < len(coords); j++ {
+			dist := calcSquaredDistance(coords[i], coords[j])
+			allPairs = append(allPairs, DistPair{
+				distance: dist,
+				coord1:   coords[i],
+				coord2:   coords[j],
+			})
+		}
 	}
-	for nth := 1; nth <= 1000; nth++ {
-		circuits = connectClosestCircuits(circuits, nth)
+
+	// STEP 2: Sort ONCE by distance
+	slices.SortFunc(allPairs, func(a, b DistPair) int {
+		return cmp.Compare(a.distance, b.distance)
+	})
+
+	// STEP 3: Extract unique distances ONCE
+	uniqueDistances := []int{}
+	lastDist := -1
+	for _, pair := range allPairs {
+		if pair.distance != lastDist {
+			uniqueDistances = append(uniqueDistances, pair.distance)
+			lastDist = pair.distance
+		}
 	}
-	slices.SortStableFunc(circuits, func(a, b []Coord) int { return cmp.Compare(len(b), len(a)) })
-	result := 1
-	lastLenght := 0
-	i := 0
-	for _, circuit := range circuits {
-		if i > 2 {
+
+	// STEP 4: Use Union-Find to track circuits efficiently
+	uf := NewUnionFind(coords)
+
+	// STEP 5: For each nth iteration
+	for nth := 1; nth <= maxConnections; nth++ {
+		if nth > len(uniqueDistances) {
 			break
 		}
-		if lastLenght != len(circuit) {
-			i++
-			lastLenght = len(circuit)
-			result *= len(circuit)
+
+		nthDistance := uniqueDistances[nth-1] // 0-indexed
+
+		// Check if the nth distance is inter-circuit
+		isInterCircuit := false
+		for _, pair := range allPairs {
+			if pair.distance == nthDistance {
+				if !uf.Same(pair.coord1, pair.coord2) {
+					isInterCircuit = true
+					break
+				}
+			} else if pair.distance > nthDistance {
+				break
+			}
+		}
+
+		// If inter-circuit, merge the closest inter-circuit pair
+		if isInterCircuit {
+			for _, pair := range allPairs {
+				if !uf.Same(pair.coord1, pair.coord2) {
+					uf.Union(pair.coord1, pair.coord2)
+					break
+				}
+			}
 		}
 	}
+
+	// STEP 6: Count circuit sizes using Union-Find
+	circuitSizes := make(map[Coord]int)
+	for _, coord := range coords {
+		root := uf.Find(coord)
+		circuitSizes[root]++
+	}
+
+	// Extract sizes and sort
+	var sizes []int
+	for _, size := range circuitSizes {
+		sizes = append(sizes, size)
+	}
+
+	slices.SortFunc(sizes, func(a, b int) int {
+		return cmp.Compare(b, a)
+	})
+
+	// Multiply the 3 largest unique sizes
+	result := 1
+	lastLength := 0
+	count := 0
+
+	for _, size := range sizes {
+		if count >= 3 {
+			break
+		}
+		if lastLength != size {
+			count++
+			lastLength = size
+			result *= size
+		}
+	}
+
 	return result
 }
 
@@ -147,6 +226,6 @@ func main() {
 	}
 
 	fmt.Println("=== Day 8 ===")
-	fmt.Println("Part 1:", solvePart1(lines))
+	fmt.Println("Part 1:", solvePart1(lines, 1000))
 	fmt.Println("Part 2:", solvePart2(lines))
 }

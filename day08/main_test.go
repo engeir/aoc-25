@@ -12,7 +12,7 @@ func TestSolvePart1(t *testing.T) {
 		t.Error(err)
 	}
 
-	got := solvePart1(lines)
+	got := solvePart1(lines, 10)
 	want := 40
 	if got != want {
 		t.Errorf("Wanted %d, got %d", want, got)
