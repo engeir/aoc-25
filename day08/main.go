@@ -105,8 +105,8 @@ type DistPair struct {
 	coord2   Coord
 }
 
-func solvePart1(lines []string, maxConnections int) int {
-	// Parse coordinates
+// Parse coordinates
+func getCoords(lines []string) []Coord {
 	var coords []Coord
 	for _, line := range lines {
 		parsed, err := parseCoord(line)
@@ -115,8 +115,10 @@ func solvePart1(lines []string, maxConnections int) int {
 		}
 		coords = append(coords, parsed)
 	}
+	return coords
+}
 
-	// STEP 1: Compute all pairwise distances ONCE
+func computePairwiseDistances(coords []Coord) []DistPair {
 	var allPairs []DistPair
 	for i := range coords {
 		for j := i + 1; j < len(coords); j++ {
@@ -128,13 +130,10 @@ func solvePart1(lines []string, maxConnections int) int {
 			})
 		}
 	}
+	return allPairs
+}
 
-	// STEP 2: Sort ONCE by distance
-	slices.SortFunc(allPairs, func(a, b DistPair) int {
-		return cmp.Compare(a.distance, b.distance)
-	})
-
-	// STEP 3: Extract unique distances ONCE
+func extractUniqueDistances(allPairs []DistPair) []int {
 	uniqueDistances := []int{}
 	lastDist := -1
 	for _, pair := range allPairs {
@@ -143,11 +142,20 @@ func solvePart1(lines []string, maxConnections int) int {
 			lastDist = pair.distance
 		}
 	}
+	return uniqueDistances
+}
 
-	// STEP 4: Use Union-Find to track circuits efficiently
+func solvePart1(lines []string, maxConnections int) int {
+	coords := getCoords(lines)
+	allPairs := computePairwiseDistances(coords)
+	slices.SortFunc(allPairs, func(a, b DistPair) int {
+		return cmp.Compare(a.distance, b.distance)
+	})
+
+	uniqueDistances := extractUniqueDistances(allPairs)
 	uf := NewUnionFind(coords)
 
-	// STEP 5: For each nth iteration
+	// For each nth iteration
 	for nth := 1; nth <= maxConnections; nth++ {
 		if nth > len(uniqueDistances) {
 			break
@@ -179,7 +187,7 @@ func solvePart1(lines []string, maxConnections int) int {
 		}
 	}
 
-	// STEP 6: Count circuit sizes using Union-Find
+	// Count circuit sizes using Union-Find
 	circuitSizes := make(map[Coord]int)
 	for _, coord := range coords {
 		root := uf.Find(coord)
@@ -216,7 +224,22 @@ func solvePart1(lines []string, maxConnections int) int {
 }
 
 func solvePart2(lines []string) int {
-	return 0
+	coords := getCoords(lines)
+	allPairs := computePairwiseDistances(coords)
+	slices.SortFunc(allPairs, func(a, b DistPair) int {
+		return cmp.Compare(a.distance, b.distance)
+	})
+
+	uf := NewUnionFind(coords)
+	var lastPair DistPair
+	for _, pair := range allPairs {
+		if !uf.Same(pair.coord1, pair.coord2) {
+			lastPair = pair
+			uf.Union(pair.coord1, pair.coord2)
+		}
+	}
+
+	return lastPair.coord1.X * lastPair.coord2.X
 }
 
 func main() {
